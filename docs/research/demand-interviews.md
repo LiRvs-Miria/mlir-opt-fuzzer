@@ -1,0 +1,100 @@
+# Demand interviews — verbatim record
+
+Third-party statements grounding this project's requirements. Verbatim
+quotes with links and dates; no editorializing in this file — derived
+requirements live in [docs/requirements.md](../requirements.md).
+Append-only: new interviews get new sections; existing text is history.
+
+## Thread: [RFC] Guidelines for fuzzer-generated issues (2024-10-15)
+
+<https://discourse.llvm.org/t/rfc-guidelines-for-fuzzer-generated-issues/82556>
+— 7 posts total; implementing PR
+[#112372](https://github.com/llvm/llvm-project/pull/112372) is open,
+draft, unmerged as of 2026-10-28 (last activity 2026-03).
+
+> Fuzzing is a valuable tool for finding compiler bugs, and the LLVM
+> project welcomes fuzzer-generated test cases. However, some additional
+> guidelines should be followed to make such reports maximally useful.
+> — @nikic (RFC body)
+
+> Fuzzer-generated issues should indicate that they are such... Issues
+> should include a minimized reproducer (including both the necessary
+> code and command line arguments) both as part of the issue description
+> and as a godbolt.org link. An effort should be made to deduplicate...
+> Reports should always be submitted against current LLVM `main`.
+> — @nikic (RFC body)
+
+> Crashes that occur on valid code are more valuable than crashes on
+> invalid code... When fuzzing LLVM IR, fatal errors that do not
+> generate a stack trace should not be reported. They indicate an
+> incorrect use of LLVM, rather than a bug.
+> — @nikic (RFC body)
+
+> From the MLIR POV, I'd be in favor of adopting the same general
+> guidelines but without some llvm-specific bits like optimization
+> levels, fast math, etc…
+> — @kuhar (MLIR maintainer)
+
+> These guidelines make sense to me... I think that compiler crashes are
+> always a bug, and clearing them out is good for a lot of reasons.
+> — @clattner
+
+Prior thread referenced by the RFC: [RFC] Adding a new GH issue tag for
+fuzzer-generated issues (2024-06-14),
+<https://discourse.llvm.org/t/rfc-adding-a-new-gh-issue-tag-for-fuzzer-generated-issues/79597>
+
+> I have noticed fuzzer generated bugs reports in spurts over time and I
+> have generally said we don't really have the bandwidth to deal with a
+> large amount of fuzzer generated bugs. Having said that we do welcome
+> bugs that our users are likely to run into and will have a high impact
+> if fixed... I think maybe we should document our policy on fuzzer
+> generated bugs.
+> — @shafik (Clang front-end maintainer, in 79597)
+
+> On the LLVM side, for miscompilations or crashes, we'll usually not
+> care a lot whether something is fuzzer-generated or not and fix it
+> anyway... The main area where I would actively discourage
+> fuzzer-generated reports are missed optimizations. If there is no
+> evidence that a pattern can also be found in real-world code, then we
+> should absolutely decline to fix it as a default policy.
+> — @nikic (in 79597)
+
+## Thread: Fuzzing MLIR Infrastructure (2025-02-27)
+
+<https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855>
+— xisang0 reports MLIR-infra crashes with low maintainer engagement;
+thread contains the success recipe and the triage guidance.
+
+> The problem we have is that a lot of the test passes in MLIR aren't
+> designed to be resilient against fuzzing... a lot of the fuzzer
+> test-cases are crashes on inputs that so artificial that no one
+> consider these really high-priority to fix.
+> — @mehdi_amini (MLIR maintainer)
+
+> To be clear: this is not intentional, I consider this a bug actually:
+> passes should be conservative and resilient against any input IR!
+> However I'm describing the state of things, however sad it is.
+> — @mehdi_amini
+
+> We've had a lot of success with fuzzer generated bugs files against
+> the SPIR-V dialect and related conversions. These were often, in
+> hindsight, relatively simple oversights in our test coverage that the
+> fuzzer helped close... You can expect much more engagement from the
+> maintainers if you file bugs against load-bearing conversion passes
+> that are supposed to be resilient to any valid input IR, and less if
+> you target test passes that have some loosely defined set of
+> supported inputs... I think that having an official fuzzing guidelines
+> like those outlined here [guidelines RFC] would help. We could further
+> define mlir-specific considerations.
+> — @kuhar (MLIR maintainer)
+
+> Often the crash reports are filled with issues mentioning an assertion
+> in a low-level piece of the infra... while actually the relevant
+> information for this crash originated from frame 15
+> `SimplifyAffineOp<mlir::affine::AffineApplyOp>`... A better description
+> could be: `AffineApplyOp canonicalize pattern triggers crash in
+> mlir::simplifyAffineMap()`.
+> — @mehdi_amini
+
+Filer's own open issues:
+<https://github.com/llvm/llvm-project/issues?q=is%3Aissue%20state%3Aopen%20author%3Axisang0>

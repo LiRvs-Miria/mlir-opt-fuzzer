@@ -37,25 +37,27 @@ MLIR's in-tree fuzzing infrastructure lags the rest of LLVM:
   fuzzer-issue guidelines, not novel fuzzing research.
 - Not tied to any vendor stack: upstream public code only.
 
-## Scope and architecture rule
+## Scope
 
-Only public, standard formats and upstream public code are consumed:
-MLIR text/bytecode, LLVM IR, and LLVM's public fuzzing interfaces.
-Contributions target `llvm-project` `main` under a personal identity;
-no employer or private dialect code crosses this boundary (see
-[ADR-0001](docs/en/adr/0001-scope-and-ip-firewall.md)).
+Consumes public MLIR/LLVM artifacts only: MLIR text/bytecode, LLVM IR,
+and public test corpora (`mlir/test`). Requirements and their upstream
+sources: [docs/requirements.md](docs/requirements.md); raw research:
+[docs/research/](docs/research/).
 
 ## Status
 
-M0 (scaffold + provenance archive) done. Next: M1 upstream entry —
-replies in the two existing discourse threads before any new RFC. See
-the [roadmap](docs/en/roadmap.md).
+Requirements gathering in progress: upstream landscape researched and
+demand provenance recorded ([docs/research/](docs/research/)); entering
+upstream dialogue. Design starts once requirements stabilize
+([docs/requirements.md](docs/requirements.md)).
 
 ## Requirements
 
-- `llvm-project` checkout; MLIR build with `-fsanitize=fuzzer` (Linux,
-  clang)
-- Python >= 3.10 (triage tooling)
+- Linux with clang; CMake + Ninja
+- An `llvm-project` checkout with an MLIR build using
+  `-fsanitize=fuzzer` and assertions ON, for campaign runs
+- Upstream reduction/dedup tooling from the same monorepo build:
+  `mlir-reduce` / `llvm-reduce`
 
 ## License
 
