@@ -1,4 +1,4 @@
-# mlir-fuzz
+# mlir-opt-fuzzer
 
 Upstream fuzzing engineering for MLIR: in-tree fuzz targets, fuzzing
 campaigns, and guideline-compliant, root-cause-attributed bug reports.
