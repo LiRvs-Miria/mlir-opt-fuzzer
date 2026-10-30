@@ -98,3 +98,42 @@ thread contains the success recipe and the triage guidance.
 
 Filer's own open issues:
 <https://github.com/llvm/llvm-project/issues?q=is%3Aissue%20state%3Aopen%20author%3Axisang0>
+
+---
+
+## Thread: fuzzer-generated issue outcomes on the MLIR tracker (2026-10)
+
+Links: github.com/llvm/llvm-project/issues (retrieved 2026-10-29 via
+GitHub API; search `repo:llvm/llvm-project`, title contains
+`mlir fuzzer`). A systematic single-reporter campaign (Kirito /
+Kiritobl), ~32 issues in a two-week window, uniform title discipline
+`[mlir][bug][<Pass>][fuzzer-found] <root-cause description>`;
+12 closed/completed, 20 open at retrieval time.
+
+> "Folks, I'm sorry, but given how much we're currently struggling
+> with review bandwidth in MLIR, I'll be deprioritising
+> fuzzer-generated issues unless there's a clear motivation or
+> practical use case." — @banach-space (issue 231904, comment
+> 2026-10-15)
+
+> "In general, while fuzzing can help uncover genuine bugs, it also
+> draws our attention towards corner cases that may never arise in
+> practice, and away from real use cases." — @banach-space (231904)
+
+> "...I'd encourage you to focus more on helping us identify the right
+> design before proposing fixes. Specifically, in this case: * Does
+> unrolling such contractions actually make sense?" — @banach-space
+> (231904)
+
+> "However, the number of PRs in this area is increasing significantly,
+> and given that both time and the number of available reviewers are
+> limited, PRs addressing fuzzer-generated issues might be
+> deprioritized." — @FedericoBruzzone (issue 233054, comment
+> 2026-10-18)
+
+> "Please add `crash` label and set `Type` to `Bug` for crashes."
+> — @EugeneZelenko (issue 233054, comment 2026-10-17)
+
+Report structure exemplar (issue 233054 body): Version (commit hash +
+build flags) → Bug Description → Crash Chain & Root Cause → Steps to
+Reproduce → minimal Reproducer → Stack Dump.

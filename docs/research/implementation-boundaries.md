@@ -33,6 +33,7 @@ community norms, not policy declaration.
 | against ToT `main`, never a release | @nikic RFC body; @akorobeynikov |
 | regression window when known (release regression > ancient) | @nikic RFC body |
 | title carries root-cause frame, not the low-level assert | @mehdi_amini: "AffineApplyOp canonicalize pattern triggers crash in mlir::simplifyAffineMap()" |
+| motivation / practical-use-case argument in the issue body | @banach-space: deprioritising fuzzer-generated issues "unless there's a clear motivation or practical use case" (2026-10, [demand-interviews.md](demand-interviews.md)) |
 
 ## Engagement heuristics (observed, not guaranteed)
 
@@ -41,3 +42,8 @@ community norms, not policy declaration.
   thread).
 - Labeling, titling, and dedupe discipline are the currency that
   separates the two outcomes (mehdi_amini's triage post).
+- 2026-10 update: maintainer bandwidth pressure made motivation an
+  admission criterion — fuzzer-generated issues without a clear
+  motivation or practical use case are explicitly deprioritized
+  (@banach-space), and fuzzer-generated PRs may be deprioritized in
+  crowded areas (@FedericoBruzzone).

@@ -62,6 +62,30 @@ on the LLVM side, which OSS-Fuzz additionally runs per-pass:
 - opencompl/mlir-fuzz — IRDL-based enumerator deriving "fuzzers,
   reducers, or mutators" for MLIR dialects, avoiding non-verifying
   programs: <https://github.com/opencompl/mlir-fuzz>
+- **TargetFuzz** — "Targeted Testing of Compiler Optimizations via
+  Grammar-Level Composition Styles", Z. Zhou, B. Limpanukorn,
+  M. Kim et al., arXiv:2512.04344 (v1 2025-12-04), recorded
+  2026-10-29: <https://arxiv.org/abs/2512.04344>
+  — grammar-based mutational fuzzer targeting *individual
+  optimizations* ("We propose targeted fuzzing of individual
+  optimizations to complement pipeline-based testing"); mines
+  "composition styles — structural relations over program constructs
+  (adjacency, nesting, repetition, ordering) — that optimizations
+  look for"; adaptable to MLIR via grammar annotations. Evaluated on
+  LLVM and MLIR: +8%/+11% coverage, 2.8×/2.6× optimization-trigger
+  rate vs baselines in targeted mode; "it effectively tests all 37
+  sampled LLVM optimizations, while pipeline-fuzzing missed 12".
+- **MLIRTracer** — "Directed Testing in MLIR: Unleashing Its Potential
+  by Overcoming the Limitations of Random Fuzzing", W. Tong, Z. Wang,
+  Z. Tang, J. Fang, Y. Zhang, G. Ye, Proc. ACM Softw. Eng.
+  2(FSE):2288–2310 (2025), DOI 10.1145/3729372, presented FSE 2025
+  (2026-06-24), recorded 2026-10-29:
+  <https://dl.acm.org/doi/10.1145/3729372>
+  — "a top-down fuzzing approach that targets the highest level of
+  MLIR programs (tosa IR) with a directed testing strategy",
+  traversing the dialect hierarchy toward lower levels while
+  prioritizing bug-prone areas; "MLIRTracer has successfully detected
+  73 bugs, with 61 already resolved by the MLIR developers".
 
 ## Evidence the fuzzer-found reporting norm is already in use
 
