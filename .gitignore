@@ -1,6 +1,6 @@
 build/
 corpus/
-artifacts/
+/artifacts/
 __pycache__/
 *.log
 AGENTS.md
