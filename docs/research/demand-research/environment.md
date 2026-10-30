@@ -6,8 +6,8 @@ building the existing parser fuzzers; the mlir-opt/mlir-reduce subset
 was mid-build at freeze (2026-10-28, 1547 steps remaining).
 The spike protocol — measurement windows and the number-to-decision
 mapping these answers feed — lives in the
-sealed [spike-record.md](spike-record.md) (pre-registered 2026-10-29;
-amended same day: priors withdrawn).
+[spike-record.md](../design-research/spike-record.md) (design
+research; pre-registered 2026-10-29; re-written 2026-10-30).
 
 ## Q1 — Build: minimal MLIR build with `-fsanitize=fuzzer` + assertions
 
