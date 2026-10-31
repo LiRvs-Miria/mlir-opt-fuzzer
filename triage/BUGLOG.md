@@ -76,3 +76,35 @@ Release + assertions ON, local build): both classes still crash on current main.
   (in the discovery pipeline) is not needed, every single pass and all other
   orderings run clean. Filing candidate per the gate amendment; issue draft in
   private workspace `work/upstream-filings/`.
+
+2026-10-31 addendum (trigger isolation, main @ 2026-10-31 HEAD, Release
++ assertions ON, local build; reproducible from the artifacts already in
+`triage/artifacts/`):
+
+- **Trigger is fully serializable in IR text**: changing
+  `func.func @data_if` to `func.func private @data_if` in
+  `MF-007-min-*.mlir` and running `remove-dead-values` as the ONLY pass
+  reproduces the failure (`expect data entry/exit operation or
+  acc.getdeviceptr as defining op` at the `acc.data`).
+  `symbol-privatize` is not needed at all — its entire contribution is
+  writing `private` into the IR. The failure is a single-IR-perturbation
+  property, not a pipeline-composition property; the pass-order axis is
+  irrelevant to reachability. Same failure reproduces via the
+  privatized mid-state fed to `remove-dead-values` alone (identical
+  error text), and on the raw MF-007 artifact body.
+- **Form drift between builds, unattributed**: on `ee28ae76`
+  (2026-10-30) the same input + pipeline aborts at `Matchers.h:491`
+  (the filed form); on main @ 2026-10-31 the pass runs to completion
+  and the **post-pass verifier rejects the output** (graceful rc=1,
+  same acc.data location). No commits touched
+  `RemoveDeadValues.cpp` / `SymbolPrivatize.cpp` / OpenACC IR in the
+  window; the assert machinery is confirmed compiled in on the
+  2026-10-31 build. The root-cause lldb session must run on a build
+  that still asserts (ee28 or a bisect point).
+- **Oracle consequence**: on main @ 2026-10-31 this bug is invisible
+  to a crash-only oracle — `pm.run` signals failure, is counted as
+  `ran`, no crash signal; verified empirically with the spike harness
+  (MF-007 A1 input → `ran=1`, rc=0). The only exposure surface is the
+  post-pass verifier. Decision recorded as design input D1 in
+  [docs/requirements.md](../docs/requirements.md) (2026-10-31): the
+  future in-tree target's oracle includes output verification.

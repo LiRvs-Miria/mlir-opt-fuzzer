@@ -122,6 +122,56 @@ I'll follow up here with the PR, and on the MLIR annex in the
 fuzzer-guidelines RFC thread."
 <https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/11>
 
+### 2026-10-31: triager-aggregation model proposed and adopted (posts 12–13)
+
+Post 12 (@rengolin, 2026-10-30) — in reply to post 8:
+
+> "I would like triagers to investigate the report with all results,
+> find common patterns and then only create issues for those common
+> patterns. So that LLVM developers can look at high-quality issues.
+> (maybe that's what you meant?)."
+>
+> "Current fuzzer issues created in MLIR today are almost entirely
+> solved by people with LLMs 'quick fixing' them a couple of hours
+> later. This is unsustainable."
+>
+> "If you mean the infra to run and report, then I'd keep it outside
+> of the monorepo. Possibly in the buildbot infra, or some other
+> better place to automate. @infra-area-team may have a better idea
+> what to do here."
+> — <https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/12>
+
+Post 13 (@LiRvs-Miria, 2026-10-31) adopts the stricter model:
+
+> "Thanks @rengolin — and yes, that's what I meant, though your model
+> is stricter than my draft, and I'd like to adopt it.
+>
+> Concretely, what I'll proceed with:
+>
+> - **In-tree piece stays minimal**: one target under `mlir/tools/`
+>   following the `mlir-parser-fuzzer` conventions (parse →
+>   `parsePassPipeline` → run → verify, with the fatal-error handler
+>   routed to `abort()` so libFuzzer records it). No campaign logic
+>   in-tree.
+> - **Reporting defaults to collection, not filing**: out-of-tree
+>   tooling clusters results by root-cause frame and involved pass,
+>   minimizes each distinct pattern with `mlir-reduce`, dedups against
+>   open and historical issues, and files one issue per pattern — only
+>   when the pattern can be motivated. Everything else stays in a
+>   local ledger. The first hour's results already follow this:
+>   #226008 got an independent minimized repro commented on the
+>   existing issue rather than a new filing; #237126 was filed as a
+>   single distinct pattern.
+> - **Run-and-report infra stays out of the monorepo** — I'll take
+>   that to @infra-area-team / the buildbot side when the target
+>   lands. One relevant fact for that discussion: OSS-Fuzz's llvm
+>   project currently builds no MLIR targets at all, so there is no
+>   existing auto-filing channel to conflict with.
+>
+> I'll follow up with the target PR, and with the MLIR annex in the
+> fuzzer-guidelines RFC thread."
+> — <https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/13>
+
 ---
 
 ## Thread: fuzzer-generated issue outcomes on the MLIR tracker (2026-10)

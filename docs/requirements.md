@@ -23,10 +23,20 @@ dates. Status meanings:
 | id | requirement | source | status | validation signal |
 |----|-------------|--------|--------|-------------------|
 | R1 | MLIR-specific annex to the fuzzer-generated-issues guidelines (MLIR-adapted wording, no llvm-specific bits) | @kuhar, [guidelines RFC](https://discourse.llvm.org/t/rfc-guidelines-for-fuzzer-generated-issues/82556): "I'd be in favor of adopting the same general guidelines but without some llvm-specific bits" | `confirmed` | annex text reviewed/accepted by MLIR maintainers |
-| R2 | Reporting discipline per the guidelines mechanics (C3) | @nikic RFC body; @mehdi_amini triage guidance (root-cause titles) | `confirmed` | filed reports receive engagement/fixes rather than silence |
+| R2 | Reporting discipline per the guidelines mechanics (C3), upgraded to **pattern-level filing**: out-of-tree tooling clusters results by root-cause frame × involved pass, minimizes each distinct pattern with `mlir-reduce`, dedups against open + historical issues, and files **one issue per pattern**, gated on motivation; everything else stays in a local ledger | @nikic RFC body; @mehdi_amini triage guidance (root-cause titles); @rengolin triager-aggregation model — "find common patterns and then only create issues for those common patterns" ([thread post 12](https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/12)), adopted verbatim in [post 13](https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/13) with first-hour practice as evidence (#226008 repro commented into the existing issue; #237126 filed as one distinct pattern); verbatim in [research/demand-research/demand-interviews.md](research/demand-research/demand-interviews.md) (2026-10-31 section) | `confirmed` | filed reports receive engagement/fixes rather than silence |
 | R3 | Target class: load-bearing conversion passes and core dialects on valid IR; not test passes | @kuhar SPIR-V success recipe; @mehdi_amini resilience stance | `confirmed` | first confirmed crash filed in this class |
 | R4 | An in-tree pass-pipeline fuzzer for MLIR (`mlir-opt-fuzzer`), modeled on `llvm-opt-fuzzer`, landed in `mlir/tools/` | @mehdi_amini 2026-10-30, asked directly "is upstream interested in landing such a target in-tree?" ([thread post 8](https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/8)): "Looks like a good plan to me! Thanks 🙂" ([post 10](https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/10)); verbatim in [research/demand-research/demand-interviews.md](research/demand-research/demand-interviews.md). Earlier inference from the gap (OSS-Fuzz builds zero MLIR targets; in-tree has two parser fuzzers only — [research/demand-research/upstream-terrain.md](research/demand-research/upstream-terrain.md)) | `confirmed` | in-tree PR lands in `mlir/tools/` following the existing fuzzer-target conventions and is accepted upstream |
 | R5 | Continuous campaign infrastructure and eventual OSS-Fuzz integration for MLIR targets | **hypothesis** — follows from R4 | `hypothesis` | deferred until R4 confirms; then re-derived |
+
+## Design inputs (ruled pre-`docs/design/`; the design phase must carry these)
+
+| id | input | basis | date |
+|----|-------|-------|------|
+| D1 | The target's oracle includes **post-pipeline verification**: a pass that completes but leaves verifier-invalid output is a finding (llvm-opt-fuzzer precedent: `verifyModule` → `abort`) | MF-007 empirical case: on main @ 2026-10-31 the bug is **invisible** to a crash-only oracle (`pm.run` failure counted as `ran`, no crash signal); the only exposure surface is the post-pass verifier — [triage/BUGLOG.md](triage/BUGLOG.md) addendum 2026-10-31 | 2026-10-31 |
+
+Still open for `docs/design/` (recorded, not ruled): pipeline-selection
+encoding (pipeline-in-input vs process-static flags — see
+[spike-report.md](research/design-research/spike-report.md) §3 verdicts).
 
 ## Non-goals (demand-derived)
 
