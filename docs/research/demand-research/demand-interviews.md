@@ -99,6 +99,29 @@ thread contains the success recipe and the triage guidance.
 Filer's own open issues:
 <https://github.com/llvm/llvm-project/issues?q=is%3Aissue%20state%3Aopen%20author%3Axisang0>
 
+### 2026-10-30: maintainer response to the in-tree pass-pipeline fuzzer proposal
+
+Post 8 (@LiRvs-Miria, 2026-10-30 01:51 UTC) proposed an in-tree
+pass-pipeline fuzzer (`mlir-opt-fuzzer` in `mlir/tools/`, modeled on
+`llvm-opt-fuzzer`, seed corpus from `mlir/test`, campaign
+infrastructure out-of-tree, C3 reporting discipline) and closed with:
+"Question for maintainers: is upstream interested in landing such a
+target in-tree, as opposed to it remaining an out-of-tree campaign?"
+<https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/8>
+
+Post 10 (@mehdi_amini, 2026-10-30 09:00 UTC):
+
+> Looks like a good plan to me! Thanks 🙂
+> — <https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/10>
+
+Post 11 (@LiRvs-Miria, 2026-10-30) replies: "Thank you! I'll proceed on
+that basis — preparing the in-tree target following the existing
+fuzzer-target conventions (the parser fuzzers as the structural
+template), with the corpus and campaign tooling staying out-of-tree.
+I'll follow up here with the PR, and on the MLIR annex in the
+fuzzer-guidelines RFC thread."
+<https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/11>
+
 ---
 
 ## Thread: fuzzer-generated issue outcomes on the MLIR tracker (2026-10)
