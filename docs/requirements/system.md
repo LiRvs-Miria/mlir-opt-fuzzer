@@ -1,55 +1,58 @@
-# Requirements
+# Requirements — what we build, and the rules we hold
 
-The organizing document: all work in this repository derives from
-this file, not the other way around. Every requirement traces to a
-verbatim source in [`docs/research/`](../research/) — quotes, links,
-dates. Status meanings:
+This file is the source of truth for the project's scope: nothing in
+this repository happens that doesn't trace back to a line here, and
+every line here traces to something a maintainer actually said —
+quotes and links live in [research/](../research/).
 
-- `confirmed` — an upstream maintainer voiced the need;
-- `hypothesis` — our inference from the recorded context, **pending
-  validation**; hypotheses do not become work items until their
-  validation signal fires.
+The project in one sentence: **bring fuzzing to MLIR the way this
+community wants it** — one fuzz target in-tree, campaigns out of tree,
+and bug reports maintainers actually want to read.
 
-## Constraints
+Status of each line below: `confirmed` = a maintainer said it.
+`hypothesis` = we believe it, and we wait for a signal before acting
+on it.
 
-| id | constraint | source |
-|----|-----------|--------|
-| C1 | Public MLIR/LLVM artifacts only (MLIR text/bytecode, LLVM IR, public test corpora); no private-stack inputs anywhere near campaigns or reports | [README](../README.md#scope) scope; author's operating rules (private) |
-| C2 | All upstream interaction (discourse, issues, PRs) under a personal identity; GitHub commit email public per LLVM policy (forwarding address acceptable — privacy honored by policy); no LLVM CLA exists — CLA clause superseded, see research addendum 2026-10-30 | [research/version-management.md](../research/version-management.md) (addendum 2026-10-30, was open questions 3–4) |
-| C3 | Every report follows the fuzzer-issue mechanics: labeled, ToT base, deduplicated, minimized reproducer + command line + godbolt link, root-cause frame in the title, motivation / practical-use-case argument in the body | [research/implementation-boundaries.md](../research/implementation-boundaries.md), Report mechanics (@banach-space 2026-10 update) |
+## Constraints (rules we don't break)
 
-## Requirements
+| id | rule | source |
+|----|------|--------|
+| C1 | Public MLIR/LLVM artifacts only — MLIR text/bytecode, LLVM IR, public test corpora. Campaigns and reports never touch private-stack inputs. | README scope; author's operating rules (private) |
+| C2 | All upstream interaction under a personal identity; commit email public per LLVM policy (a forwarding address is fine — the policy itself honors privacy). LLVM has no CLA. | [version-management.md](../research/version-management.md) (addendum 2026-10-30) |
+| C3 | Every report follows the fuzzer-issue mechanics: label it fuzzer-generated, verify against current `main`, deduplicate, attach a minimized reproducer + command line + godbolt link, put the root-cause frame in the title, and make the motivation case in the body. | [implementation-boundaries.md](../research/implementation-boundaries.md), Report mechanics (@banach-space 2026-10 update) |
 
-| id | requirement | source | status | validation signal |
-|----|-------------|--------|--------|-------------------|
-| R1 | MLIR-specific annex to the fuzzer-generated-issues guidelines (MLIR-adapted wording, no llvm-specific bits) | @kuhar, [guidelines RFC](https://discourse.llvm.org/t/rfc-guidelines-for-fuzzer-generated-issues/82556): "I'd be in favor of adopting the same general guidelines but without some llvm-specific bits" | `confirmed` | annex text reviewed/accepted by MLIR maintainers |
-| R2 | Reporting discipline per the guidelines mechanics (C3), upgraded to **pattern-level filing**: out-of-tree tooling clusters results by root-cause frame × involved pass, minimizes each distinct pattern with `mlir-reduce`, dedups against open + historical issues, and files **one issue per pattern**, gated on motivation; everything else stays in a local ledger | @nikic RFC body; @mehdi_amini triage guidance (root-cause titles); @rengolin triager-aggregation model — "find common patterns and then only create issues for those common patterns" ([thread post 12](https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/12)), adopted verbatim in [post 13](https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/13) with first-hour practice as evidence (#226008 repro commented into the existing issue; #237126 filed as one distinct pattern); noise context making the motivation gate load-bearing: "Current fuzzer issues created in MLIR today are almost entirely solved by people with LLMs 'quick fixing' them a couple of hours later. This is unsustainable." (post 12); verbatim in [research/demand-interviews.md](../research/demand-interviews.md) (2026-10-31 section) | `confirmed` | filed reports receive engagement/fixes rather than silence |
-| R3 | Target class: load-bearing conversion passes and core dialects on valid IR; not test passes | @kuhar SPIR-V success recipe; @mehdi_amini resilience stance | `confirmed` | first confirmed crash filed in this class |
-| R4 | An in-tree pass-pipeline fuzzer for MLIR (`mlir-opt-fuzzer`), modeled on `llvm-opt-fuzzer`, landed in `mlir/tools/` | @mehdi_amini 2026-10-30, asked directly "is upstream interested in landing such a target in-tree?" ([thread post 8](https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/8)): "Looks like a good plan to me! Thanks 🙂" ([post 10](https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/10)); verbatim in [research/demand-interviews.md](../research/demand-interviews.md). Earlier inference from the gap (OSS-Fuzz builds zero MLIR targets; in-tree has two parser fuzzers only — [research/upstream-terrain.md](../research/upstream-terrain.md)) | `confirmed` | in-tree PR lands in `mlir/tools/` following the existing fuzzer-target conventions and is accepted upstream |
-| R5 | Campaign / run-and-report infrastructure lives **out of the monorepo**; the future automation home is the buildbot/infra side — engage @infra-area-team when the in-tree target lands. Eventual OSS-Fuzz integration remains the long-term form (notable fact: OSS-Fuzz's llvm project currently builds zero MLIR targets, so no existing auto-filing channel to conflict with) | @rengolin post 12: "If you mean the infra to run and report, then I'd keep it outside of the monorepo. Possibly in the buildbot infra, or some other better place to automate. @infra-area-team may have a better idea what to do here." ([thread post 12](https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/12)); adopted in [post 13](https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/13) bullet 3; verbatim in [research/demand-interviews.md](../research/demand-interviews.md) (2026-10-31 section) | `confirmed` (placement); concrete integration form stays open until the infra-area-team discussion | campaigns run out-of-tree with zero conflict against upstream channels; infra-area-team discussion held after the target lands |
+## Requirements (what we're building)
 
-## Design inputs (ruled pre-`docs/design/`; the design phase must carry these)
+| id | requirement | source | status | done when |
+|----|-------------|--------|--------|-----------|
+| R1 | An MLIR-specific annex to the fuzzer-issue guidelines — the same general rules, minus the llvm-specific bits (optimization levels, fast math, …). | @kuhar, guidelines RFC: "I'd be in favor of adopting the same general guidelines but without some llvm-specific bits" | `confirmed` | maintainers accept the annex text |
+| R2 | Never file raw crashes. Cluster crashes locally by root cause, minimize one reproducer per pattern (`mlir-reduce`), check open and historical issues, file at most one issue per pattern — and only when we can argue why it matters. Everything else stays in the local ledger. | @rengolin post 12: "find common patterns and then only create issues for those common patterns"; adopted in post 13; the noise problem that makes the motivation gate load-bearing (post 12): "…almost entirely solved by people with LLMs 'quick fixing' them a couple of hours later. This is unsustainable."; verbatim in [demand-interviews.md](../research/demand-interviews.md) (2026-10-31 section) | `confirmed` | filed issues get engagement and fixes, not silence |
+| R3 | Point the fuzzer at load-bearing conversion passes and core dialects running on valid IR — not at test passes. That is where maintainer engagement lives. | @kuhar (SPIR-V success recipe); @mehdi_amini (resilience stance) | `confirmed` | first crash filed and confirmed in this class |
+| R4 | Land `mlir-opt-fuzzer` in `mlir/tools/`, modeled on `llvm-opt-fuzzer`. | @mehdi_amini, asked directly in post 8; answer (post 10): "Looks like a good plan to me! Thanks 🙂"; verbatim in [demand-interviews.md](../research/demand-interviews.md) | `confirmed` | the PR lands in `mlir/tools/` and is accepted upstream |
+| R5 | Keep campaign/report infrastructure out of the monorepo. When the target lands, take the automation question to the buildbot/infra side (@infra-area-team). Long-term form: OSS-Fuzz — which today builds zero MLIR targets, so there is no existing channel to conflict with. | @rengolin post 12: "I'd keep it outside of the monorepo. Possibly in the buildbot infra…"; adopted in post 13 bullet 3; verbatim in [demand-interviews.md](../research/demand-interviews.md) (2026-10-31 section) | `confirmed` (placement; exact form open until the infra-area-team discussion) | campaigns run out-of-tree with zero conflict; the infra discussion has been held |
 
-| id | input | basis | date |
-|----|-------|-------|------|
-| D1 | The target's oracle includes **post-pipeline verification**: a pass that completes but leaves verifier-invalid output is a finding (llvm-opt-fuzzer precedent: `verifyModule` → `abort`) | MF-007 empirical case: on main @ 2026-10-31 the bug is **invisible** to a crash-only oracle (`pm.run` failure counted as `ran`, no crash signal); the only exposure surface is the post-pass verifier — [triage/BUGLOG.md](../../triage/BUGLOG.md) addendum 2026-10-31 | 2026-10-31 |
-| D2 | The in-tree piece stays **minimal**: one fuzz target under `mlir/tools/` following the `mlir-parser-fuzzer` conventions — parse → `parsePassPipeline` → run → post-pipeline verify (D1 composes here), with the fatal-error handler routed to `abort()` so libFuzzer records it; **no campaign logic in-tree**; run-and-report infra stays out of the monorepo (R5) | @rengolin post 12 (infra out of monorepo); adopted verbatim in @LiRvs-Miria [post 13](https://discourse.llvm.org/t/fuzzing-mlir-infrastructure/84855/13) bullets 1/3 — [research/demand-interviews.md](../research/demand-interviews.md) (2026-10-31 section) | 2026-10-31 |
+## Design inputs (decided before docs/design/ opens; the design must carry them)
 
-Still open for `docs/design/` (recorded, not ruled): pipeline-selection
-encoding (pipeline-in-input vs process-static flags — see
-[spike-report.md](../tech-survey/spike-report.md) §3 verdicts).
+| id | input | why | date |
+|----|-------|-----|------|
+| D1 | The target's oracle verifies **output**, not just crashes — a pass that finishes but leaves verifier-invalid output is a finding. | MF-007 proved the stakes: on main @ 2026-10-31 the bug is invisible to a crash-only oracle — the pass fails gracefully and only the post-pass verifier reveals it ([BUGLOG](../../triage/BUGLOG.md) addendum 2026-10-31). | 2026-10-31 |
+| D2 | The in-tree piece stays **minimal**: one target, parse → `parsePassPipeline` → run → post-pipeline verify (D1 lives here), fatal errors routed to `abort()` so libFuzzer records them. No campaign logic in-tree; infrastructure lives outside the monorepo (R5). | @rengolin post 12; adopted verbatim in post 13 bullets 1/3 — [demand-interviews.md](../research/demand-interviews.md) (2026-10-31 section) | 2026-10-31 |
 
-## Non-goals (demand-derived)
+One question is deliberately left to the design phase (recorded, not
+ruled): should the fuzz input carry the pass pipeline (mutated jointly
+with the module), or should the pipeline be a fixed per-process flag?
+The two precedents disagree; MF-006/MF-007 are the evidence —
+[spike-report.md](../tech-survey/spike-report.md) §3.
 
-- **Missed-optimization reports** — @nikic: "we should absolutely
+## Non-goals
+
+- **Missed-optimization reports.** @nikic: "we should absolutely
   decline to fix it as a default policy."
-- **Test-pass crash reports** — collected locally, not filed
-  (@mehdi_amini signal/noise).
-- **Novel fuzzing research** — the research lane is crowded
-  (SYNTHFUZZ ICSE'25, FLEX, MLIRSmith, MLIR-Forge, TargetFuzz
-  arXiv:2512.04344, MLIRTracer FSE'25 —
-  [research/upstream-terrain.md](../research/upstream-terrain.md)); this
-  project lands infrastructure and reports bugs.
-- **Report volume as a goal** — the currency is engagement and fixes,
-  per the boundaries in
-  [research/implementation-boundaries.md](../research/implementation-boundaries.md).
+- **Test-pass crashes.** Collected locally, not filed (@mehdi_amini on
+  signal/noise).
+- **Fuzzing research.** The research lane is crowded (SYNTHFUZZ,
+  FLEX, MLIRSmith, MLIR-Forge, TargetFuzz, MLIRTracer —
+  [upstream-terrain.md](../research/upstream-terrain.md)); this project
+  lands infrastructure and files bugs.
+- **Report volume as a goal.** One motivated issue beats twenty cold
+  ones (@banach-space: motivation is the admission criterion).
