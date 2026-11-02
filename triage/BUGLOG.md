@@ -131,3 +131,42 @@ main @ ee28ae76 2026-10-30, Release + assertions ON, local build):
   on `min-private` + single `remove-dead-values` with suspect A
   (RemoveDeadValues dropping uses and then folding over a dangling
   use) as the primary hypothesis.
+
+2026-11-02 root cause (CONFIRMED):
+
+- **Crash site**: `Operation::fold` constant-probe loop
+  (Operation.cpp:657-658) calls `matchPattern` on every operand
+  unconditionally; acc.data operand 0 is null →
+  `constant_op_binder` assert (Matchers.h:491). (MLIR "fold" here =
+  compile-time constant-folding probe, not an FP fold.)
+- **Null slot**: acc.data operand 0 — the `if(%arg1)` use; operand 1
+  (%0, map_info result) alive.
+- **Who nulls it**: RDV dead-argument cleanup — `nonLiveArgs = [0, 1]`
+  (both args judged dead); RemoveDeadValues.cpp:653-654 runs
+  `getArgument(deadIdx).dropAllUses()` per dead arg, nulling every use
+  slot in place — acc.data.op0 (arg1's use) and map_info.op0 (arg0's
+  use). `eraseArguments` (658) then removes both args;
+  arith.constant and acc.map_info are erased outright; acc.data — the
+  only op in the driver handoff set — survives with a nulled operand
+  slot and is folded by the driver.
+- **Root cause**: RDV's cleanup produces an invalid intermediate
+  state — a surviving op with null operand slots — and hands it to a
+  consumer whose fold/matchPattern contract requires non-null Values.
+  Two disciplines coexist in the same pass: dead OPERANDS are
+  poisoned (line 582, `setOperand(createPoisonedValue(...))`), while
+  dead ARGUMENT uses are nulled in place (line 654) — and the pass's
+  own poison-replacement step processed the single operand-list entry
+  as a no-op, so no poison was applied. `private` is the
+  trigger gate: public functions skip the dead-arg analysis entirely
+  (RemoveDeadValues.cpp:278), so their args are never dropped.
+- **Verification** (throwaway patch, 2026-11-02): replacing the
+  in-place nulling at 653-654 with `replaceAllUsesWith(poison)`
+  (mirroring the :582 discipline) removes the SIGABRT on asserting
+  builds — the pass instead fails at `acc.data`'s semantic verifier
+  (`expect data entry/exit operation or acc.getdeviceptr as defining
+  op`), rc=1, identical to the no-assertions observation. Confirms
+  the null slots (653-654) as the abort trigger; the deeper issue is
+  that acc.data itself survives the cleanup — its dataOperands can
+  then never satisfy the acc verifier, poison or not. (Also: RDV's
+  own poison-replacement step processed its single operand-list entry
+  as a no-op — acc.data's slots never received poison.)
