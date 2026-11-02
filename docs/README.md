@@ -1,23 +1,18 @@
-# docs/ — document map
+# docs/ — document map and process line
 
-The repository separates documents by **genre** (each directory is a
-rewrite contract), not by topic. The write discipline follows the
-**origin** of the content: facts observed externally are append-only;
+The documentation follows the engineering pipeline: **research →
+requirements → tech survey → design**. Each stage owns one directory
+with exactly one write discipline (discipline follows the **origin**
+of the content, not its topic): facts observed outside are append-only;
 reasoning produced internally is revisable, with history in git.
 
-| Path | Genre | Rewrite rule | Contents |
+| Stage | Path | Origin / discipline | Status (2026-11-02) |
 |---|---|---|---|
-| `docs/requirements.md` | organizational | revisable; every item `confirmed`/`hypothesis` with source | C1–C3 constraints, R1–R5 requirements |
-| `docs/research/demand-research/*.md` | **sealed facts** (external-origin) | append-only; corrections are new dated sections superseding old ones | upstream terrain, demand interviews (verbatim maintainer quotes), implementation boundaries, version management, environment survey, coding standards |
-| `docs/research/design-research/*.md` | **design research** (internal-origin) | revisable; history lives in git | design-decision spike: evidence layer (`spike-record`) + decision layer (`spike-report`) |
-| `docs/design/` | design | starts after the R4 gate | (empty — R4 is `hypothesis`) |
-| `../triage/BUGLOG.md` | ledger | append-only rows; `status`/`fix` advance in place | crash classes MF-NNN, filing gated on R4 |
-| `../triage/artifacts/` | evidence | frozen | MF-NNN crash reproducers + origin snapshots (pairs) |
+| Research | [research/](research/) | external + machine-verified facts; **append-only** | demand side complete: interviews, terrain, boundaries, standards, versioning, toolchain |
+| Requirements | [requirements/](requirements/) | derived from research; `system.md` is the **derivation root**; module-level files join as modules appear; every item `confirmed`/`hypothesis` with source | R1–R4 `confirmed`; R5 `hypothesis` (deferred until R4 lands) |
+| Tech survey | [tech-survey/](tech-survey/) | internal engineering investigation; revisable, promotion-dated | promoted to formal survey 2026-11-02; free-axis verdicts in `spike-report.md`; one axis still OPEN (pipeline-selection encoding → design) |
+| Design | [design/](design/) | derives from requirements + tech survey; revisable | starting; enters via the requirements' design inputs (D1) and the open survey axis |
 
-Spike (2026-10-29, re-scoped 2026-10-30) entry points:
-[research/design-research/spike-record.md](research/design-research/spike-record.md)
-(evidence layer: positioning, protocol, measurements, free-axis
-decisions) →
-[research/design-research/spike-report.md](research/design-research/spike-report.md)
-(decision layer) →
-[../triage/BUGLOG.md](../triage/BUGLOG.md) (crashes MF-001…MF-007).
+Side channels (not stages): crash ledger
+[../triage/BUGLOG.md](../triage/BUGLOG.md) (append-only rows) and
+frozen evidence [../triage/artifacts/](../triage/artifacts/).

@@ -41,15 +41,18 @@ MLIR's in-tree fuzzing infrastructure lags the rest of LLVM:
 
 Consumes public MLIR/LLVM artifacts only: MLIR text/bytecode, LLVM IR,
 and public test corpora (`mlir/test`). Requirements and their upstream
-sources: [docs/requirements.md](docs/requirements.md); raw research:
+sources: [docs/requirements/](docs/requirements/); raw research:
 [docs/research/](docs/research/).
 
 ## Status
 
-Requirements gathering in progress: upstream landscape researched and
-demand provenance recorded ([docs/research/](docs/research/)); entering
-upstream dialogue. Design starts once requirements stabilize
-([docs/requirements.md](docs/requirements.md)).
+Process line: [research](docs/research/) →
+[requirements](docs/requirements/) → [tech survey](docs/tech-survey/)
+→ [design](docs/design/). Requirements gathering is complete — R1–R4
+`confirmed` with upstream sources (R5 deferred); the design-decision
+spike is done and promoted to the formal technical survey (2026-11-02);
+design is starting, with the in-tree fuzz target as the first work
+item per the maintainer's approval.
 
 ## Requirements
 

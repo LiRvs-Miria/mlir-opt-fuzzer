@@ -106,5 +106,28 @@ Release + assertions ON, local build): both classes still crash on current main.
   `ran`, no crash signal; verified empirically with the spike harness
   (MF-007 A1 input → `ran=1`, rc=0). The only exposure surface is the
   post-pass verifier. Decision recorded as design input D1 in
-  [docs/requirements.md](../docs/requirements.md) (2026-10-31): the
+  [docs/requirements/system.md](../docs/requirements/system.md) (2026-10-31): the
   future in-tree target's oracle includes output verification.
+
+2026-11-02 addendum (asserting-build confirmation, odot machine,
+main @ ee28ae76 2026-10-30, Release + assertions ON, local build):
+
+- The single-keyword + single-pass trigger form was confirmed on the
+  asserting build for the first time (the 2026-10-31 P1 run only
+  covered the non-asserting newer build, where the same input/pipeline
+  degrades to the rc=1 verify form). `min` with `func.func @data_if`
+  hand-edited to `func.func private @data_if`, fed to
+  `remove-dead-values` as the ONLY pass: **rc=134 SIGABRT at
+  Matchers.h:491** (`constant_op_binder`, assert `value` failed),
+  stack `Operation::fold` <- `applyOpPatternsGreedily` <-
+  `OpToOpPassAdaptor::runPipeline` — identical to the filed form.
+  Negative control (unmodified min + single rdv) runs clean rc=0;
+  positive control (min + symbol-privatize,remove-dead-values) still
+  SIGABRTs. Working files: `/tmp/opencode/mf007-confirm/` (odot).
+- Structural consequence: in the single-pass form symbol-privatize
+  never runs in the crashing process, so its in-process state is
+  excluded as a cause; its only contribution is the `private`
+  visibility in the IR text. The lldb session (runbook §2-§4) proceeds
+  on `min-private` + single `remove-dead-values` with suspect A
+  (RemoveDeadValues dropping uses and then folding over a dangling
+  use) as the primary hypothesis.

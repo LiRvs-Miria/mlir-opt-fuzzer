@@ -6,13 +6,16 @@ re-positioned: it is a **design-decision spike serving only the axes
 that engineering precedent cannot settle** — not a design-selection
 survey. The original sealed-era version (protocol + campaign log in
 append-only form) is preserved in git history at the checkpoint
-commit `56713a7`.
+commit `56713a7`. Relocated to `tech-survey/` and promoted to the
+formal technical survey on 2026-11-02 (R4 signal received) — the
+promotion changes retention, not the lineage rule; see
+[README.md](README.md).
 
 Companion documents: decision layer
 [spike-report.md](spike-report.md); crash ledger + provenance pairing
 [../../triage/BUGLOG.md](../../triage/BUGLOG.md); in-repo artifacts
 [../../triage/artifacts/](../../triage/artifacts/); build/environment
-facts [../demand-research/environment.md](../demand-research/environment.md).
+facts [environment.md](environment.md).
 
 ## 1. Positioning
 
@@ -231,7 +234,7 @@ usefulness.
 - Six shards shared one persistent corpus dir; per-shard fork startup
   (seed merge over the whole corpus) cost ≈1–2.5 min and grows with
   corpus size (same-day correction of the earlier ~1–2% estimate;
-  see demand-research/environment.md addendum 2026-10-29).
+  see environment.md addendum 2026-10-29).
 - Validity counts are per-process summaries flushed at worker exit;
   bucket boundaries are approximate at batch granularity (fork=1
   batches ~2k execs).

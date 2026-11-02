@@ -3,7 +3,7 @@
 Verified facts about the MLIR fuzzing infrastructure landscape.
 Recorded 2026-10-28; re-verify before citing in upstream discussions.
 Statements of strategy derived from these facts live in
-[docs/requirements.md](../requirements.md).
+[docs/requirements/system.md](../requirements/system.md).
 
 ## OSS-Fuzz: no MLIR coverage
 

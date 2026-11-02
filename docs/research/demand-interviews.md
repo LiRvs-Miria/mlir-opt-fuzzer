@@ -2,7 +2,7 @@
 
 Third-party statements grounding this project's requirements. Verbatim
 quotes with links and dates; no editorializing in this file — derived
-requirements live in [docs/requirements.md](../requirements.md).
+requirements live in [docs/requirements/system.md](../requirements/system.md).
 Append-only: new interviews get new sections; existing text is history.
 
 ## Thread: [RFC] Guidelines for fuzzer-generated issues (2024-10-15)
