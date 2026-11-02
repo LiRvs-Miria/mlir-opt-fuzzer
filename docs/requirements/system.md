@@ -38,11 +38,11 @@ on it.
 | D1 | The target's oracle verifies **output**, not just crashes — a pass that finishes but leaves verifier-invalid output is a finding. | MF-007 proved the stakes: on main @ 2026-10-31 the bug is invisible to a crash-only oracle — the pass fails gracefully and only the post-pass verifier reveals it ([BUGLOG](../../triage/BUGLOG.md) addendum 2026-10-31). | 2026-10-31 |
 | D2 | The in-tree piece stays **minimal**: one target, parse → `parsePassPipeline` → run → post-pipeline verify (D1 lives here), fatal errors routed to `abort()` so libFuzzer records them. No campaign logic in-tree; infrastructure lives outside the monorepo (R5). | @rengolin post 12; adopted verbatim in post 13 bullets 1/3 — [demand-interviews.md](../research/demand-interviews.md) (2026-10-31 section) | 2026-10-31 |
 
-One question is deliberately left to the design phase (recorded, not
-ruled): should the fuzz input carry the pass pipeline (mutated jointly
-with the module), or should the pipeline be a fixed per-process flag?
-The two precedents disagree; MF-006/MF-007 are the evidence —
-[spike-report.md](../tech-survey/spike-report.md) §3.
+The pipeline-selection question (input-carried vs process-static
+flag) was answered at design opening (2026-11-02): **process-static
+flag**, per the llvm-opt-fuzzer precedent and the MF-007 trigger
+reduction — see
+[design/in-tree-target.md](../design/acceptance-criteria.md#d-1-pipeline-selection-is-a-process-static-flag) (D-1).
 
 ## Non-goals
 
