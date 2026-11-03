@@ -170,3 +170,31 @@ main @ ee28ae76 2026-10-30, Release + assertions ON, local build):
   then never satisfy the acc verifier, poison or not. (Also: RDV's
   own poison-replacement step processed its single operand-list entry
   as a no-op — acc.data's slots never received poison.)
+
+2026-11-03 addendum (post-fix re-verification + provenance correction,
+main @ 2d7136ea92e9, Release + assertions ON, fresh local build):
+
+- **Provenance correction to the pre-2026-11-03 entries**: ee28ae7685
+  is main as of **2026-09-28** — the "2026-10-30" attached to it in the
+  entries above was the build date, not the commit date. #208881
+  (0edf6243d588, "Replace dead function argument uses with poison",
+  landed 2026-10-12, ~2700 commits after that snapshot) fixes the
+  assertion: the 2026-10-30 claim "NOT covered by the 2026-10-12 fixes
+  that closed #203226 / #206920" was checked only on that pre-#208881
+  tree and is hereby corrected. This also attributes the 2026-10-31
+  "form drift between builds, unattributed": the drifting commit was
+  #208881 itself.
+- **Re-verified on main @ 2d7136ea92e9**: MF-007-min private form +
+  single `remove-dead-values` → **no SIGABRT**; the pass completes and
+  the verifier rejects the output (`expect data entry/exit operation
+  or acc.getdeviceptr as defining op` at acc.data, rc=1) — reproduces
+  the 2026-11-02 comment by Men-cotton on [#237126](https://github.com/llvm/llvm-project/issues/237126).
+  The filed pipeline `symbol-privatize,remove-dead-values` (original
+  form) behaves identically; the ee28ae76 build (control) still
+  SIGABRTs at Matchers.h:491; #208881's own regression case
+  (`@unreachable_func_with_for_loops`) passes on the new build.
+- **Residual = the semantic layer** of the 2026-11-02 two-layer
+  analysis: RDV still rewrites the operands of the acc.data it keeps
+  into a form the OpenACC verifier rejects (slots now hold `ub.poison`
+  instead of null). Correction of the original issue report is in
+  progress on #237126; fix direction belongs to the maintainers.
