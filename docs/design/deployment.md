@@ -23,45 +23,54 @@ Minimal face (D2): parse → pipeline → run → post-pipeline verify →
 abort. No corpus, no stats, no reporting (AC-9). One target + build
 wiring, nothing else.
 
-**Pipeline channel: exec-name encoding over a closed vocabulary.**
-The target reads its executable name, splits off the slug after `--`,
-and looks it up in a source-defined static table (slug → pipeline
-text). Deciding evidence:
+**Pipeline channel: `--pipeline=<slug>` over a closed vocabulary.**
+Target flags start after libFuzzer's `-ignore_remaining_args=1`
+marker (the `FuzzerCLI.h` `parseFuzzerCLOpts` boundary — libFuzzer's
+arguments end, the target's begin); the slug resolves against a
+.def-file table (`MlirOptFuzzerPipelines.def`, the compiler-rt
+`FuzzerFlags.def` idiom: adding a pipeline is one data row, no code
+reading). Deciding evidence:
 
 - the option space is closed by design: D-1 removed the
   combination-perturbation axis (AC-2 absorbs it), and the pass set is
   curated by the whitelist criterion — a new pipeline is a deliberate
-  addition, never input-carried;
-- libFuzzer fork mode joins child argv unquoted through the shell
-  (`FuzzerCommand.h toString()`), and pipeline text is full of
-  parentheses — raw argv is unusable for campaign runs;
-- the llvm-opt-fuzzer precedent does exactly this (its exec-name
-  handler is a hardcoded vocabulary), because its deployment (OSS-Fuzz,
-  no fork mode) runs one binary per named variant.
+  .def row, never input-carried;
+- fork-mode shell safety: slug values are parenthesis-free, while raw
+  pipeline text is eaten by fork mode's unquoted argv join
+  (`FuzzerCommand.h toString()`);
+- llvm-opt-fuzzer parses its target flags through the same
+  libFuzzer/CL boundary.
 
-Startup handling: the table's text is split mlir-opt-style (outer
-anchor → pm anchor, inner text → pipeline). Raw `parsePassPipeline` on
-anchored text against a module-anchored pm nests a second module level
-and silently runs zero passes — parses fine, executes nothing. A bad
-slug or unparseable table entry is a startup error (AC-10).
+Startup: the target validates the slug's text exactly as it will run —
+against a module-anchored PassManager. `builtin.module` is a constant
+under D-1 and the .def carries inner text only; an entry that
+re-anchors it is rejected at startup, because it would nest a second
+module level and silently run zero passes. A missing flag, an unknown
+slug, or an unparseable entry is a startup error (AC-10).
 
-Growth path: a new pipeline = a table row (source change, recompile).
+Growth path: a new pipeline = one .def row (source change, recompile).
 The whitelist criterion (selects passes, runner-side, mechanically
-re-derivable) and the table (stores pipeline texts, including curated
+re-derivable) and the .def (stores pipeline texts, including curated
 compositions such as the MF-007 trigger) are two lists kept in sync;
 an unknown slug fails loud at startup and the positive controls catch
 drift.
 
 Consequences to carry into [acceptance-criteria.md](acceptance-criteria.md):
 AC-10/AC-11 get reworded — the option surface is a closed,
-source-defined vocabulary (llvm-opt-fuzzer does exactly this), distinct
-from input-dependent admission, which stays banned.
+source-defined vocabulary (the shape llvm-opt-fuzzer encodes in its
+exec name), distinct from input-dependent admission, which stays
+banned.
 
-**Development posture**: local branch in the llvm checkout (origin =
-personal fork, upstream = llvm); never merged into local main; the
-branch becomes the PR (push to fork, open PR); rebase onto
-upstream/main periodically; the PR diff contains only the target and
-its build wiring (AC-9 audit).
+**Development posture**: work happens on a local branch in the llvm
+checkout (origin = personal fork, upstream = llvm). The code reaches
+llvm's main only through the PR being merged on GitHub — local main
+stays a read-only mirror of upstream (fast-forward only, never carries
+local work), and the branch is never merged into it. The branch is
+pushed to the fork as the PR source. Keep the branch rebased (not
+merged) onto upstream/main: a linear history keeps the PR commit list
+to exactly our commits; after a rebase, push with
+`--force-with-lease`. The PR diff contains only the target and its
+build wiring (AC-9 audit).
 
 ## 3. Build matrix
 

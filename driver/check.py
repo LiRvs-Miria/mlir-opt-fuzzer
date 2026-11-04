@@ -23,30 +23,32 @@ from pathlib import Path
 # never overrides it. A recorded-abort verdict is keyed to this value.
 LIBFUZZER_ERROR_EXITCODE = 77
 
-# D-1: pipeline selection is a process-static command-line flag, and
-# the input is module-only. Flag name pinned to the mlir-opt
-# convention; if the landed PR chooses a different name, this is the
-# single constant to update.
-TARGET_FLAG = "--pass-pipeline"
+# D-1: pipeline selection is process-static. The channel is the
+# executable name: the net invokes the target through a per-slug
+# symlink `mlir-opt-fuzzer--<slug>`; the slug resolves against the
+# target's closed vocabulary (MlirOptFuzzerPipelines.def in-tree).
+AC5_SLUG = "cse"
+AC6_SLUG = "remove-dead-values"
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
-
-AC5_PIPELINE = "builtin.module(func.func(cse))"
-AC6_PIPELINE = "builtin.module(remove-dead-values)"
 
 VERDICTS = ("PASS", "FAIL", "RED")
 
 
-def run_target(bin_path, artifact_dir, args, timeout):
+def run_target(bin_path, artifact_dir, args, timeout, slug):
     """Run the target once; return (rc, timed_out, new_artifacts).
 
-    Objective signals only: the process exit code and the directory
-    diff of libFuzzer's artifact prefix. Output text is captured and
-    discarded, never parsed.
+    The pipeline is selected by slug through the target's cl flag,
+    enabled after libFuzzer's -ignore_remaining_args=1 marker (the
+    FuzzerCLI.h parseFuzzerCLOpts boundary). Objective signals only:
+    the process exit code and the directory diff of libFuzzer's
+    artifact prefix. Output text is captured and discarded, never
+    parsed.
     """
     artifact_dir.mkdir(parents=True, exist_ok=True)
     before = set(artifact_dir.glob("*"))
-    cmd = [str(bin_path), f"-artifact_prefix={artifact_dir}/", *args]
+    cmd = [str(bin_path), f"-artifact_prefix={artifact_dir}/", *args,
+           "-ignore_remaining_args=1", f"--pipeline={slug}"]
     try:
         cp = subprocess.run(cmd, capture_output=True, timeout=timeout)
         rc, timed_out = cp.returncode, False
@@ -56,12 +58,12 @@ def run_target(bin_path, artifact_dir, args, timeout):
     return rc, timed_out, new
 
 
-def expect_exit0(probe_id, input_path, pipeline=None):
+def expect_exit0(probe_id, input_path, slug):
     """AC-2/3/5: the input is consumed and rejected/accepted cleanly."""
     def probe(bin_path, workdir, timeout):
-        args = ([f"{TARGET_FLAG}={pipeline}"] if pipeline else []) + [str(input_path)]
         rc, timed_out, new = run_target(
-            bin_path, workdir / f"{probe_id}-artifacts", args, timeout)
+            bin_path, workdir / f"{probe_id}-artifacts", [str(input_path)],
+            timeout, slug)
         if timed_out:
             return "FAIL", "timeout — no exit"
         if rc == 0 and not new:
@@ -70,7 +72,7 @@ def expect_exit0(probe_id, input_path, pipeline=None):
     return probe
 
 
-def expect_recorded_abort(probe_id, input_path, pipeline):
+def expect_recorded_abort(probe_id, input_path, slug):
     """AC-6: post-pipeline verify failure → abort(), recorded by libFuzzer.
 
     Runs in corpus mode (-runs=1, trigger as a one-file corpus):
@@ -84,9 +86,8 @@ def expect_recorded_abort(probe_id, input_path, pipeline):
         art.mkdir(parents=True, exist_ok=True)
         corpus.mkdir(parents=True, exist_ok=True)
         shutil.copy(input_path, corpus / input_path.name)
-        args = [f"{TARGET_FLAG}={pipeline}",
-                f"-artifact_prefix={art}/", "-runs=1", str(corpus)]
-        rc, timed_out, new = run_target(bin_path, art, args, timeout)
+        args = ["-runs=1", str(corpus)]
+        rc, timed_out, new = run_target(bin_path, art, args, timeout, slug)
         if timed_out:
             return "FAIL", "timeout — no exit"
         if rc == LIBFUZZER_ERROR_EXITCODE and len(new) == 1:
@@ -105,18 +106,18 @@ def expect_recorded_abort(probe_id, input_path, pipeline):
 PROBES = [
     ("AC-2", "garbage bytes → exit 0",
      expect_exit0("ac2a", FIXTURES / "ac2-garbage.bin",
-                  pipeline=AC5_PIPELINE)),
+                  slug=AC5_SLUG)),
     ("AC-2", "module + pipeline tail → exit 0 (absorbed AC-4)",
      expect_exit0("ac2b", FIXTURES / "ac2-pipeline-tail.mlir",
-                  pipeline=AC5_PIPELINE)),
+                  slug=AC5_SLUG)),
     ("AC-3", "bytecode magic → exit 0",
      expect_exit0("ac3", FIXTURES / "ac3-bytecode.bin",
-                  pipeline=AC5_PIPELINE)),
+                  slug=AC5_SLUG)),
     ("AC-5", "good module + pipeline → exit 0",
-     expect_exit0("ac5", FIXTURES / "ac5-good.mlir", pipeline=AC5_PIPELINE)),
+     expect_exit0("ac5", FIXTURES / "ac5-good.mlir", slug=AC5_SLUG)),
     ("AC-6", "verify failure → recorded abort",
      expect_recorded_abort("ac6", FIXTURES / "ac6-mf007-min-private.mlir",
-                           pipeline=AC6_PIPELINE)),
+                           slug=AC6_SLUG)),
 ]
 
 

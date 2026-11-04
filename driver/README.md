@@ -17,10 +17,12 @@ it stays in this repository; the PR carries only the target.
   target is not implemented yet), exit 1. This is the net's starting
   state.
 - Probes map onto the acceptance rows; AC-2 carries two input classes
-  (it absorbed AC-4). Input-class probes run with a known-good
-  `--pass-pipeline` — that is the deployment state (the target always
-  runs flagged); input rejection is a property of the input, not of
-  the absence of a flag:
+  (it absorbed AC-4). Input-class probes run under a known-good
+  pipeline slug — passed as `--pipeline=<slug>` after
+  `-ignore_remaining_args=1` (the libFuzzer/CL boundary, FuzzerCLI.h
+  `parseFuzzerCLOpts` convention) — because that is the deployment
+  state (the target always runs selected); input rejection is a
+  property of the input, not of a missing selection:
 
   | probe | row | verdict is PASS iff |
   |---|---|---|
@@ -66,11 +68,13 @@ it stays in this repository; the PR carries only the target.
 
 ## Pins (single points to revisit if the landed PR decides otherwise)
 
-- Pipeline flag name: `--pass-pipeline` (mlir-opt convention; D-1's
-  "command-line flag checked once at startup") — `TARGET_FLAG` in
-  `check.py`.
-- AC-5 pipeline `builtin.module(func.func(cse))`; AC-6 pipeline
-  `builtin.module(remove-dead-values)`.
+- Pipeline channel: `--pipeline=<slug>` after
+  `-ignore_remaining_args=1`, resolved against the target's closed
+  vocabulary (`MlirOptFuzzerPipelines.def` in-tree) — slug constants
+  in `check.py`. The net and the .def stay in sync: an unknown slug
+  fails loud at startup.
+- AC-5 slug `cse` (= `builtin.module(func.func(cse))`); AC-6 slug
+  `remove-dead-values` (= `builtin.module(remove-dead-values)`).
 - libFuzzer `-error_exitcode` default (77).
 
 ## Fixtures

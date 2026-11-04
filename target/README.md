@@ -14,10 +14,10 @@ of this repository hosts. The target's home:
   <https://github.com/LiRvs-Miria/llvm-project> — the PR source;
   rebased onto upstream main, never merged locally.
 
-Status: input contract landed (parse as module; empty, bytecode, and
-unparseable inputs rejected by returning 0). Pending increments:
-startup pass-pipeline selection, post-pipeline output verification
-oracle, structured custom mutator.
+Status: input contract and startup pipeline selection landed (a
+`--pipeline=<slug>` flag over the closed `.def` vocabulary; the
+pipeline runs per input). Pending increments: post-pipeline output
+verification oracle, structured custom mutator.
 
 Verification: the acceptance net in [../driver/](../driver/) runs
 against a built target binary:
