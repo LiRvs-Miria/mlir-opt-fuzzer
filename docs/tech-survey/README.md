@@ -1,4 +1,4 @@
-# tech-survey/ — technical survey (prototype stage)
+# tech-survey/ — the formal technical survey
 
 Internal engineering investigation that grounds design decisions.
 Promoted from a disposable spike to the **formal technical survey on
