@@ -8,7 +8,7 @@ logging on entry (`llvm::errs()`), filled in incrementally:
 - `LLVMFuzzerCustomMutator` — structured mutation (spike-report §4-1)
 - `LLVMFuzzerCustomCrossOver` — structured splicing
 
-`DummyMlirOptFuzzer.cpp` provides a no-libFuzzer sanity main over
+`DummyOptFuzzer.cpp` provides a no-libFuzzer sanity main over
 `runFuzzerOnInputs` (DUMMY_MAIN convention, cf.
 `mlir/tools/mlir-parser-fuzzer`). The working implementation this
 framework was stripped from — driver net, runner scripts, walk record —

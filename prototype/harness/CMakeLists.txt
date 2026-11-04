@@ -31,7 +31,7 @@ target_link_libraries(mlir-opt-fuzzer-proto PRIVATE LLVMSupport)
 # libFuzzer main, coverage callbacks only).
 add_executable(mlir-opt-fuzzer-proto-dummy
   mlir-opt-fuzzer-proto.cpp
-  DummyMlirOptFuzzer.cpp)
+  DummyOptFuzzer.cpp)
 target_link_options(mlir-opt-fuzzer-proto-dummy PRIVATE -fsanitize=fuzzer-no-link)
 target_link_libraries(mlir-opt-fuzzer-proto-dummy PRIVATE
   LLVMFuzzerCLI
