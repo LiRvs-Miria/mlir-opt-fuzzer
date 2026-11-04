@@ -22,18 +22,29 @@ include_directories(${MLIR_INCLUDE_DIRS} ${LLVM_INCLUDE_DIRS})
 add_executable(mlir-opt-fuzzer-proto mlir-opt-fuzzer-proto.cpp)
 target_compile_options(mlir-opt-fuzzer-proto PRIVATE -fsanitize=fuzzer-no-link)
 target_link_options(mlir-opt-fuzzer-proto PRIVATE -fsanitize=fuzzer)
-target_link_libraries(mlir-opt-fuzzer-proto PRIVATE LLVMSupport)
+target_link_libraries(mlir-opt-fuzzer-proto PRIVATE
+  MLIRParser
+  MLIRIR
+  MLIRSupport
+  MLIRRegisterAllDialects
+  MLIRRegisterAllExtensions
+  )
 
 # Sanity-check binary without libFuzzer's main (DUMMY_MAIN convention,
 # cf. mlir/tools/mlir-parser-fuzzer): runFuzzerOnInputs loops the file
 # arguments. The build-dir libraries carry sanitizer-coverage
 # instrumentation, so the dummy links -fsanitize=fuzzer-no-link (no
-# libFuzzer main, coverage callbacks only).
+# libFuzzer main, coverage callbacks only). Same MLIR libs: it compiles
+# the same source.
 add_executable(mlir-opt-fuzzer-proto-dummy
   mlir-opt-fuzzer-proto.cpp
   DummyOptFuzzer.cpp)
 target_link_options(mlir-opt-fuzzer-proto-dummy PRIVATE -fsanitize=fuzzer-no-link)
 target_link_libraries(mlir-opt-fuzzer-proto-dummy PRIVATE
   LLVMFuzzerCLI
-  LLVMSupport
+  MLIRParser
+  MLIRIR
+  MLIRSupport
+  MLIRRegisterAllDialects
+  MLIRRegisterAllExtensions
   )
