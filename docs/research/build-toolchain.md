@@ -100,3 +100,30 @@ setup) — deferred until the harness exists.
   spike; the merge commit already carries 2026-10-28 main.
 - Build directory: `~/mlir-fuzz-build` (outside the repo, ~fresh).
 
+
+## Addendum 2026-11-04 — add_llvm_fuzzer engine channels: the working config, and a PCH conflict
+
+Machine-verified on this machine while bringing up a second (NDEBUG)
+build directory; corrects the Q1 recipe as printed on one point.
+
+- The actually-working campaign build (`~/mlir-fuzz-build`) does not
+  run the Q1-printed `LLVM_USE_SANITIZE_COVERAGE=ON`. Its cache has
+  `LLVM_LIB_FUZZING_ENGINE=/usr/lib/llvm-22/lib/clang/22/lib/linux/libclang_rt.fuzzer-x86_64.a`
+  and `LLVM_USE_SANITIZE_COVERAGE=OFF`: the engine channel links the
+  libFuzzer runtime at link time only, while compile-time
+  instrumentation comes from the global `-fsanitize=fuzzer-no-link`.
+- `LLVM_USE_SANITIZE_COVERAGE=ON` (add_llvm_fuzzer's second branch) is
+  **broken on current ToT** for fuzzer targets: the branch injects a
+  bare compile-time `-fsanitize=fuzzer` via a directory-scope
+  `set(CMAKE_CXX_FLAGS ...)`, and PCH is unconditionally enabled
+  (`LLVM_ENABLE_PCH` no longer exists upstream — the configure variable
+  is silently ignored as unused). The LLVMSupport PCH is built without
+  the fuzzer feature, so every fuzzer target fails to compile —
+  "current translation unit is compiled with the target feature
+  '-fsanitize=fuzzer' but the precompiled file ... was not" — including
+  the upstream `mlir-text-parser-fuzzer` on a fresh NDEBUG build.
+  Switching the build to the engine channel fixed it with a 16-step
+  incremental rebuild.
+- Q1's recipe is superseded on this point: configure with
+  `LLVM_LIB_FUZZING_ENGINE=<libclang_rt.fuzzer archive>` and drop
+  `LLVM_ENABLE_PCH` (unused).
