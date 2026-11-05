@@ -24,8 +24,8 @@ from pathlib import Path
 LIBFUZZER_ERROR_EXITCODE = 77
 
 # D-1: pipeline selection is process-static. The channel is the
-# executable name: the net invokes the target through a per-slug
-# symlink `mlir-opt-fuzzer--<slug>`; the slug resolves against the
+# `--pipeline` cl flag, enabled after libFuzzer's
+# -ignore_remaining_args=1 marker; the slug resolves against the
 # target's closed vocabulary (MlirOptFuzzerPipelines.def in-tree).
 AC5_SLUG = "cse"
 AC6_SLUG = "remove-dead-values"
@@ -103,6 +103,35 @@ def expect_recorded_abort(probe_id, input_path, slug):
     return probe
 
 
+def expect_reproducible_abort(probe_id, input_path, slug, runs=10):
+    """AC-8: same input, same outcome — the crash reproduces 10/10.
+
+    The AC-6 corpus-mode run, repeated `runs` times as independent
+    processes, each with a FRESH artifact dir: libFuzzer names crash
+    artifacts after the input (crash-<sha1>), so a shared dir collides
+    on the name from run 2 onward and the directory diff goes silent.
+    Every run must record exactly one artifact.
+    """
+    def probe(bin_path, workdir, timeout):
+        corpus = workdir / f"{probe_id}-corpus"
+        corpus.mkdir(parents=True, exist_ok=True)
+        shutil.copy(input_path, corpus / input_path.name)
+        args = ["-runs=1", str(corpus)]
+        misses = []
+        for i in range(runs):
+            rc, timed_out, new = run_target(
+                bin_path, workdir / f"{probe_id}-artifacts-{i}", args,
+                timeout, slug)
+            if timed_out:
+                misses.append(f"run {i}: timeout — no exit")
+            elif rc != LIBFUZZER_ERROR_EXITCODE or len(new) != 1:
+                misses.append(f"run {i}: rc={rc}, artifacts={new}")
+        if misses:
+            return "FAIL", f"{len(misses)}/{runs} runs missed: " + "; ".join(misses)
+        return "PASS", f"{runs}/{runs} runs recorded an abort"
+    return probe
+
+
 PROBES = [
     ("AC-2", "garbage bytes → exit 0",
      expect_exit0("ac2a", FIXTURES / "ac2-garbage.bin",
@@ -118,6 +147,9 @@ PROBES = [
     ("AC-6", "verify failure → recorded abort",
      expect_recorded_abort("ac6", FIXTURES / "ac6-mf007-min-private.mlir",
                            slug=AC6_SLUG)),
+    ("AC-8", "crash reproduces 10/10 single-process",
+     expect_reproducible_abort("ac8", FIXTURES / "ac6-mf007-min-private.mlir",
+                               slug=AC6_SLUG)),
 ]
 
 

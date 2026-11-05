@@ -31,6 +31,7 @@ it stays in this repository; the PR carries only the target.
   | ac3 | AC-3 | `rc == 0`, no artifact |
   | ac5 | AC-5 | `rc == 0`, no artifact |
   | ac6 | AC-6 | `rc == 77` (libFuzzer default `-error_exitcode`, never overridden) **and** exactly one new artifact under the probe's `-artifact_prefix` dir |
+  | ac8 | AC-8 | 10/10 independent corpus-mode runs of the AC-6 trigger, each with a fresh artifact dir, record an abort: `rc == 77` and exactly one artifact per run (per-run dirs are load-bearing — libFuzzer names artifacts after the input, so a shared dir collides from run 2 on) |
 
   AC-6 runs in **corpus mode** (`-runs=1`, trigger as a one-file
   corpus): libFuzzer records artifacts only in fuzzing/corpus mode —
@@ -76,6 +77,12 @@ it stays in this repository; the PR carries only the target.
 - AC-5 slug `cse` (= `builtin.module(func.func(cse))`); AC-6 slug
   `remove-dead-values` (= `builtin.module(remove-dead-values)`).
 - libFuzzer `-error_exitcode` default (77).
+- Artifacts are corpus-mode-only: single-file runs set
+  `SaveArtifacts=false` (the `RunIndividualFiles` branch) and
+  `DumpCurrentUnit` bails on the unset `CurrentUnitData` ("Happens
+  when running individual inputs"), while `_Exit(ErrorExitCode)` (77)
+  fires either way — why the AC-6/AC-8 probes run corpus mode and key
+  on rc **and** artifact presence.
 
 ## Fixtures
 
@@ -91,7 +98,8 @@ it stays in this repository; the PR carries only the target.
   from
   [triage/artifacts/MF-007-min-...mlir](triage/artifacts/MF-007-min-c589551684301db8f78b8aebb0572f9803854169.mlir)
   by a one-token edit (`func.func @data_if` → `func.func private
-  @data_if`, serialization per the BUGLOG 2026-10-31 addendum). The
+  @data_if`, serialization per the BUGLOG 2026-10-31 addendum). Feeds
+  both the AC-6 oracle probe and the AC-8 reproduction probe. The
   filed (non-private) artifact is benign under single
   `remove-dead-values` on current main — RDV skips public functions
   (RemoveDeadValues.cpp:278 gate); the private keyword is the trigger
